@@ -58,7 +58,7 @@ export default function ScanScreen() {
           name: `photo.${ext}`,
         } as any);
       }
-      const res = await fetch("http://localhost:3001/api/analyze-image", {
+      const res = await fetch("https://scan-save-backend.onrender.com/api/analyze-image", {
         method: "POST",
         body: formData,
       });
@@ -79,7 +79,7 @@ export default function ScanScreen() {
     if (!productName) return;
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:3001/api/search-offers", {
+      const res = await fetch("https://scan-save-backend.onrender.com/api/search-offers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productName }),

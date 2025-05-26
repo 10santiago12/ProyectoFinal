@@ -20,5 +20,5 @@ app.use((req, res, next) => {
 app.use("/api", productRoutes);
 
 app.listen(PORT, () => {
-  console.log(`🚀 Backend corriendo en http://localhost:${PORT}`);
+  console.log(`🚀 Backend corriendo en https://scan-save-backend.onrender.com:${PORT}`);
 });
