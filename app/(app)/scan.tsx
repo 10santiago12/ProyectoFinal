@@ -1,15 +1,6 @@
 // app/(app)/scan.tsx
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  ActivityIndicator,
-  Alert,
-  Platform,
-} from "react-native";
+import { View, Text, Button, Image, ActivityIndicator, Alert, ScrollView, Platform } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from '@expo/vector-icons';
 
@@ -17,6 +8,7 @@ export default function ScanScreen() {
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [productName, setProductName] = useState("");
+  const [offers, setOffers] = useState<any[]>([]);
 
   const pickImage = async () => {
     try {
@@ -36,68 +28,92 @@ export default function ScanScreen() {
   };
 
   const uploadImage = async (uri: string) => {
-    setLoading(true);
     try {
+      setLoading(true);
       const formData = new FormData();
+
       if (Platform.OS === "web") {
         const response = await fetch(uri);
         const blob = await response.blob();
         formData.append("image", blob, "photo.jpg");
       } else {
-        const fileExt = uri.split('.').pop();
+        const ext = uri.split(".").pop();
         formData.append("image", {
           uri,
-          type: `image/${fileExt}`,
-          name: `photo.${fileExt}`,
+          type: `image/${ext}`,
+          name: `photo.${ext}`,
         } as any);
       }
+
       const res = await fetch("http://localhost:3001/api/analyze-image", {
         method: "POST",
         body: formData,
       });
+
       const data = await res.json();
-      setProductName(res.ok ? data.productName || "No se reconoció" : "No se reconoció");
-    } catch {
-      Alert.alert("Error", "Falló el análisis de la imagen.");
+
+      if (res.ok) {
+        setProductName(data.productName || "No se reconoció");
+        setOffers([]);
+      } else {
+        console.warn("❌ Backend:", data);
+        setProductName("No se reconoció");
+      }
+    } catch (error) {
+      Alert.alert("Error", "No se pudo analizar la imagen.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchOffers = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("http://localhost:3001/api/search-offers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productName }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setOffers(data.offers);
+      } else {
+        Alert.alert("No se encontraron ofertas");
+      }
+    } catch (err) {
+      Alert.alert("Error", "No se pudieron obtener las ofertas.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Scan & Discover</Text>
-
-      <TouchableOpacity style={styles.scanButton} onPress={pickImage}>
-        <Ionicons name="image-outline" size={24} color="#fff" />
-        <Text style={styles.scanButtonText}>Seleccionar imagen</Text>
-      </TouchableOpacity>
-
-      <View style={styles.previewContainer}>
-        {image ? (
-          <Image
-            source={{ uri: image }}
-            style={styles.previewImage}
-            resizeMode="contain"
-          />
-        ) : (
-          <Ionicons name="camera-reverse-outline" size={80} color="#ccc" />
-        )}
-      </View>
-
-      {loading && (
-        <View style={styles.overlay}>
-          <ActivityIndicator size="large" color="#3a7d44" />
+    <ScrollView contentContainerStyle={{ padding: 20 }}>
+      <Button title="Seleccionar Imagen" onPress={pickImage} />
+      {image && <Image source={{ uri: image }} style={{ width: 200, height: 200, marginTop: 20 }} />}
+      {loading && <ActivityIndicator size="large" color="green" style={{ marginTop: 20 }} />}
+      {!loading && productName && (
+        <View style={{ marginTop: 20 }}>
+          <Text style={{ fontWeight: "bold" }}>🛍 Producto identificado:</Text>
+          <Text>{productName}</Text>
+          <Button title="Buscar ofertas en eBay" onPress={fetchOffers} />
         </View>
       )}
-
-      {productName !== "" && !loading && (
-        <View style={styles.resultCard}>
-          <Ionicons name="pricetag-outline" size={24} color="#3a7d44" />
-          <Text style={styles.resultText}>{productName}</Text>
+      {offers.length > 0 && (
+        <View style={{ marginTop: 20 }}>
+          <Text style={{ fontWeight: "bold" }}>💸 Ofertas:</Text>
+          {offers.map((offer, index) => (
+            <View key={index} style={{ marginBottom: 15 }}>
+              <Text>📌 {offer.title}</Text>
+              <Text>💲 {offer.price}</Text>
+              <Text>🔗 {offer.link}</Text>
+            </View>
+          ))}
         </View>
       )}
-    </View>
+    </ScrollView>
   );
 }
 

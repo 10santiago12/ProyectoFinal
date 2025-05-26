@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { searchEbayProduct } from "../utils/searchEbay";
 
-export async function searchProductHandler(req: Request, res: Response): Promise<void> {
+export async function searchOffersHandler(req: Request, res: Response): Promise<void> {
   const { productName } = req.body;
 
   if (!productName) {
@@ -9,12 +9,15 @@ export async function searchProductHandler(req: Request, res: Response): Promise
     return;
   }
 
-  const product = await searchEbayProduct(productName);
-
-  if (!product) {
-    res.status(404).json({ error: "No product found" });
-    return;
+  try {
+    const offers = await searchEbayProduct(productName);
+    if (!offers) {
+      res.status(404).json({ error: "No offers found" });
+    } else {
+      res.json({ offers });
+    }
+  } catch (error) {
+    console.error("❌ Error buscando en eBay:", error);
+    res.status(500).json({ error: "Search failed" });
   }
-
-  res.json(product);
 }
