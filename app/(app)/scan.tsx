@@ -1,6 +1,6 @@
 // app/(app)/scan.tsx
 import React, { useState } from "react";
-import { View, Text, Button, Image, ActivityIndicator, Alert, ScrollView, Platform } from "react-native";
+import { View, Text, Button, Image, ActivityIndicator, Alert, ScrollView, Platform, StyleSheet } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from '@expo/vector-icons';
 
