@@ -1,37 +1,55 @@
 // app/(app)/ProfileScreen.tsx
 import React from "react";
-import { View, Text, StyleSheet, Button, Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
 import { useAuth } from "../../context/AuthContext";
-import { router } from "expo-router";
+import { useRouter } from "expo-router";
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
+  const router = useRouter();
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      Alert.alert("Error", "No se pudo cerrar sesión.");
-      console.error("Error al cerrar sesión:", error);
-    }
-  };
-
+  // Si no hay usuario, redirige al login
   if (!user) {
     router.replace("/auth");
     return null;
   }
 
+  // Maneja cierre de sesión
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.replace("/auth");
+    } catch (error) {
+      Alert.alert("Error", "No se pudo cerrar sesión.");
+      console.error(error);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Perfil de usuario</Text>
+      <Text style={styles.header}>Perfil</Text>
 
-      <Text style={styles.label}>Nombre:</Text>
-      <Text style={styles.value}>{user.displayName || "No disponible"}</Text>
+      {/* Opción: Ver / Editar información */}
+      <TouchableOpacity
+        style={styles.optionCard}
+        onPress={() => router.push("/(app)/PersonalInfoScreen")}
+      >
+        <Text style={styles.optionText}>Ver / Editar información</Text>
+      </TouchableOpacity>
 
-      <Text style={styles.label}>Correo:</Text>
-      <Text style={styles.value}>{user.email}</Text>
-
-      <Button title="Cerrar sesión" onPress={handleLogout} color="#d9534f" />
+      {/* Opción: Cerrar sesión */}
+      <TouchableOpacity
+        style={[styles.optionCard, styles.logoutCard]}
+        onPress={handleLogout}
+      >
+        <Text style={[styles.optionText, styles.logoutText]}>Cerrar sesión</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -39,27 +57,33 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#fff',
     padding: 20,
-    justifyContent: "center",
-    backgroundColor: "#fff",
   },
-  title: {
+  header: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 30,
-    textAlign: "center",
+    textAlign: 'center',
   },
-  label: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginTop: 12,
+  optionCard: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    marginBottom: 16,
+    justifyContent: 'center',
   },
-  value: {
-    fontSize: 16,
-    marginBottom: 12,
-    color: "#333",
+  optionText: {
+    fontSize: 18,
+    color: '#333',
+    textAlign: 'center',
   },
-  button: {
-    marginTop: 15,
+  logoutCard: {
+    backgroundColor: '#ffe5e0',
+  },
+  logoutText: {
+    color: '#d9534f',
+    fontWeight: '600',
   },
 });

@@ -30,9 +30,6 @@ export default function AppLayout() {
             case "PriceHistoryScreen":
               iconName = focused ? "stats-chart" : "stats-chart-outline";
               break;
-            case "ProductScreen":
-              iconName = focused ? "pricetag" : "pricetag-outline";
-              break;
             case "ProfileScreen":
               iconName = focused ? "person" : "person-outline";
               break;
@@ -74,10 +71,6 @@ export default function AppLayout() {
         options={{ title: "Prices", tabBarLabel: "Prices" }} 
       />
       <Tabs.Screen 
-        name="ProductScreen" 
-        options={{ title: "Product", tabBarLabel: "Product" }} 
-      />
-      <Tabs.Screen 
         name="ProfileScreen" 
         options={{ title: "Profile", tabBarLabel: "Profile" }} 
       />
@@ -91,6 +84,14 @@ export default function AppLayout() {
       />
       <Tabs.Screen
         name="AuthScreen"
+        options={{ tabBarButton: () => null, headerShown: false }}
+      />
+      <Tabs.Screen
+        name="SettingsScreen"
+        options={{ tabBarButton: () => null, headerShown: false }}
+      />
+      <Tabs.Screen
+        name="PersonalInfoScreen"
         options={{ tabBarButton: () => null, headerShown: false }}
       />
     </Tabs>
