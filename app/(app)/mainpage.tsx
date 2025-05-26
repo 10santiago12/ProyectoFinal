@@ -77,25 +77,6 @@ export default function HomeScreen() {
         renderItem={renderRecentItem}
         style={{ marginBottom: 20 }}
       />
-
-      {/* Botones grandes con iconos */}
-      <View style={styles.buttonsRow}>
-        <TouchableOpacity style={styles.bigButton} onPress={() => router.push("/(app)/PriceHistoryScreen")}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="search-outline" size={24} color="#3a7d44" />
-          </View>
-          <Text style={styles.buttonTitle}>Price Comparison</Text>
-          <Text style={styles.buttonSubtitle}>Compare prices across multiple stores</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.bigButton} onPress={() => router.push("/(app)/PriceHistoryScreen")}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="time-outline" size={24} color="#3a7d44" />
-          </View>
-          <Text style={styles.buttonTitle}>Price History</Text>
-          <Text style={styles.buttonSubtitle}>Track price changes over time</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }

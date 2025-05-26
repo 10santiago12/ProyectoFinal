@@ -1,4 +1,3 @@
-// app/(app)/scan.tsx
 import React, { useState } from "react";
 import {
   ScrollView,
@@ -14,6 +13,7 @@ import {
   Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import { useFavorites } from "@/context/FavoritesContext";
 
 const { width } = Dimensions.get("window");
 
@@ -22,6 +22,7 @@ export default function ScanScreen() {
   const [loading, setLoading] = useState(false);
   const [productName, setProductName] = useState("");
   const [offers, setOffers] = useState<any[]>([]);
+  const { addFavorite } = useFavorites();
 
   const pickImage = async () => {
     try {
@@ -95,16 +96,10 @@ export default function ScanScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.scroll}>
-      {/* Botón de selección */}
-      <TouchableOpacity 
-        style={styles.button} 
-        onPress={pickImage} 
-        disabled={loading}
-      >
+      <TouchableOpacity style={styles.button} onPress={pickImage} disabled={loading}>
         <Text style={styles.buttonText}>Seleccionar Imagen</Text>
       </TouchableOpacity>
 
-      {/* Vista previa de imagen */}
       {image && (
         <View style={styles.previewWrapper}>
           <Image
@@ -115,25 +110,18 @@ export default function ScanScreen() {
         </View>
       )}
 
-      {/* Spinner */}
       {loading && <ActivityIndicator style={styles.loader} size="large" color="#3a7d44" />}
 
-      {/* Producto identificado */}
       {!loading && productName !== "" && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Producto identificado:</Text>
           <Text style={styles.productName}>{productName}</Text>
-          <TouchableOpacity 
-            style={styles.buttonOutline} 
-            onPress={fetchOffers} 
-            disabled={loading}
-          >
+          <TouchableOpacity style={styles.buttonOutline} onPress={fetchOffers} disabled={loading}>
             <Text style={styles.buttonOutlineText}>Buscar ofertas en eBay</Text>
           </TouchableOpacity>
         </View>
       )}
 
-      {/* Lista de ofertas */}
       {offers.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Ofertas disponibles:</Text>
@@ -142,9 +130,21 @@ export default function ScanScreen() {
               <Text style={styles.offerTitle}>{offer.title}</Text>
               <Text style={styles.offerPrice}>Precio: ${offer.price}</Text>
               <TouchableOpacity onPress={() => Linking.openURL(offer.link)}>
-                <Text style={styles.offerLink} numberOfLines={1} ellipsizeMode="middle">
-                  Ver oferta
-                </Text>
+                <Text style={styles.offerLink}>Ver oferta</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.favoriteButton}
+                onPress={() => {
+                  addFavorite({
+                    title: offer.title,
+                    price: offer.price,
+                    link: offer.link,
+                  }).then(() => {
+                    Alert.alert("Favorito agregado", `"${offer.title}" fue agregado a tus favoritos.`);
+                  });
+                }}
+              >
+                <Text style={styles.favoriteText}>Guardar en favoritos</Text>
               </TouchableOpacity>
             </View>
           ))}
@@ -154,7 +154,7 @@ export default function ScanScreen() {
   );
 }
 
-const IMAGE_SIZE = width * 0.3; // Reducido a 30% del ancho de pantalla
+const IMAGE_SIZE = width * 0.3;
 
 const styles = StyleSheet.create({
   scroll: {
@@ -167,11 +167,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 8,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
   },
   buttonText: {
     color: '#fff',
@@ -233,7 +228,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: '#e0e0e0',
-    elevation: 1,
   },
   offerTitle: {
     fontSize: 15,
@@ -251,5 +245,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#1565c0',
     textDecorationLine: 'underline',
+  },
+  favoriteButton: {
+    marginTop: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#e0f7fa',
+    borderRadius: 6,
+  },
+  favoriteText: {
+    color: '#00796b',
+    fontWeight: '500',
   },
 });

@@ -2,16 +2,15 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons"; // Para iconos, instala expo/vector-icons si no lo tienes
+import { Ionicons } from "@expo/vector-icons";
 
-// Datos de ejemplo recientes (simulan scans recientes)
 const recentScans = [
   {
     id: "1",
     name: "Wireless Headphones XS-500",
     brand: "SoundTech",
     price: 89.99,
-    image: require("../../assets/ejemplos/audifonos.png"), // Usa imagen placeholder local o url real
+    image: require("../../assets/ejemplos/audifonos.png"),
   },
   {
     id: "2",
@@ -32,7 +31,6 @@ const recentScans = [
 export default function HomeScreen() {
   const { user } = useAuth();
 
-  // Renderiza cada producto reciente
   const renderRecentItem = ({ item }: any) => (
     <View style={styles.recentItem}>
       <Image source={item.image} style={styles.productImage} />
@@ -46,7 +44,6 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>PriceScan</Text>
         <TouchableOpacity onPress={() => router.push("/(app)/ProfileScreen")}>
@@ -54,16 +51,16 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Tarjeta Scan & Save */}
       <View style={styles.scanCard}>
         <Text style={styles.scanTitle}>Scan & Save</Text>
-        <Text style={styles.scanSubtitle}>Compare prices across stores and get AI recommendations</Text>
+        <Text style={styles.scanSubtitle}>
+          Compare prices across stores and get AI recommendations
+        </Text>
         <TouchableOpacity style={styles.scanButton} onPress={() => router.push("/(app)/scan")}>
           <Text style={styles.scanButtonText}>Start Scanning</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Recent Scans */}
       <View style={styles.recentHeader}>
         <Text style={styles.recentTitle}>Recent Scans</Text>
         <TouchableOpacity onPress={() => router.push("/(app)/HistoryScreen")}>
@@ -77,25 +74,6 @@ export default function HomeScreen() {
         renderItem={renderRecentItem}
         style={{ marginBottom: 20 }}
       />
-
-      {/* Botones grandes con iconos */}
-      <View style={styles.buttonsRow}>
-        <TouchableOpacity style={styles.bigButton} onPress={() => router.push("/(app)/PriceHistoryScreen")}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="search-outline" size={24} color="#3a7d44" />
-          </View>
-          <Text style={styles.buttonTitle}>Price Comparison</Text>
-          <Text style={styles.buttonSubtitle}>Compare prices across multiple stores</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.bigButton} onPress={() => router.push("/(app)/PriceHistoryScreen")}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="time-outline" size={24} color="#3a7d44" />
-          </View>
-          <Text style={styles.buttonTitle}>Price History</Text>
-          <Text style={styles.buttonSubtitle}>Track price changes over time</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -119,7 +97,7 @@ const styles = StyleSheet.create({
     color: "#111",
   },
   scanCard: {
-    backgroundColor: "linear-gradient(90deg, #3a7d44 0%, #6bb76f 100%)", // El gradiente no se aplica así en React Native, usar LinearGradient de expo-linear-gradient
+    backgroundColor: "#3a7d44", // mejor que un string inválido de gradiente
     borderRadius: 12,
     padding: 20,
     marginBottom: 20,
@@ -187,37 +165,5 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
     color: "#3a7d44",
-  },
-  buttonsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  bigButton: {
-    flex: 1,
-    backgroundColor: "#f5faf5",
-    borderRadius: 12,
-    paddingVertical: 18,
-    paddingHorizontal: 15,
-    marginHorizontal: 5,
-    alignItems: "center",
-  },
-  iconCircle: {
-    backgroundColor: "#d7f0d8",
-    borderRadius: 25,
-    width: 50,
-    height: 50,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  buttonTitle: {
-    fontWeight: "bold",
-    fontSize: 16,
-    marginBottom: 3,
-  },
-  buttonSubtitle: {
-    fontSize: 12,
-    color: "#666",
-    textAlign: "center",
   },
 });

@@ -13,7 +13,7 @@ export default function AppLayout() {
           fontSize: 12,
           fontWeight: "600",
         },
-        tabBarLabelPosition: "below-icon", // Esto es esencial
+        tabBarLabelPosition: "below-icon",
         tabBarIcon: ({ color, size, focused }) => {
           let iconName: React.ComponentProps<typeof Ionicons>["name"];
 
@@ -34,7 +34,7 @@ export default function AppLayout() {
               iconName = focused ? "person" : "person-outline";
               break;
             default:
-              iconName = focused ? "ellipse" : "ellipse-outline";
+              iconName = "ellipse-outline";
               break;
           }
 
@@ -50,50 +50,23 @@ export default function AppLayout() {
         tabBarItemStyle: {
           justifyContent: "center",
           alignItems: "center",
-          flexDirection: "column", // Asegura que el ícono esté sobre el texto
+          flexDirection: "column",
         },
       })}
     >
-      <Tabs.Screen 
-        name="mainpage" 
-        options={{ title: "Home", tabBarLabel: "Home" }} 
-      />
-      <Tabs.Screen 
-        name="scan" 
-        options={{ title: "Scan", tabBarLabel: "Scan" }} 
-      />
-      <Tabs.Screen 
-        name="HistoryScreen" 
-        options={{ title: "History", tabBarLabel: "History" }} 
-      />
-      <Tabs.Screen 
-        name="PriceHistoryScreen" 
-        options={{ title: "Prices", tabBarLabel: "Prices" }} 
-      />
-      <Tabs.Screen 
-        name="ProfileScreen" 
-        options={{ title: "Profile", tabBarLabel: "Profile" }} 
-      />
-      <Tabs.Screen
-        name="ScannerScreen"
-        options={{ tabBarButton: () => null, headerShown: false }}
-      />
-      <Tabs.Screen
-        name="HomeScreen"
-        options={{ tabBarButton: () => null, headerShown: false }}
-      />
-      <Tabs.Screen
-        name="AuthScreen"
-        options={{ tabBarButton: () => null, headerShown: false }}
-      />
-      <Tabs.Screen
-        name="SettingsScreen"
-        options={{ tabBarButton: () => null, headerShown: false }}
-      />
-      <Tabs.Screen
-        name="PersonalInfoScreen"
-        options={{ tabBarButton: () => null, headerShown: false }}
-      />
+      {/* ✅ Solo los tabs visibles */}
+      <Tabs.Screen name="mainpage" options={{ title: "Home", tabBarLabel: "Home" }} />
+      <Tabs.Screen name="scan" options={{ title: "Scan", tabBarLabel: "Scan" }} />
+      <Tabs.Screen name="HistoryScreen" options={{ title: "History", tabBarLabel: "History" }} />
+      <Tabs.Screen name="PriceHistoryScreen" options={{ title: "Prices", tabBarLabel: "Prices" }} />
+      <Tabs.Screen name="ProfileScreen" options={{ title: "Profile", tabBarLabel: "Profile" }} />
+
+      {/* ❌ Ocultos del tab bar completamente */}
+      <Tabs.Screen name="ScannerScreen" options={{ href: null, headerShown: false }} />
+      <Tabs.Screen name="HomeScreen" options={{ href: null, headerShown: false }} />
+      <Tabs.Screen name="AuthScreen" options={{ href: null, headerShown: false }} />
+      <Tabs.Screen name="SettingsScreen" options={{ href: null, headerShown: false }} />
+      <Tabs.Screen name="PersonalInfoScreen" options={{ href: null, headerShown: false }} />
     </Tabs>
   );
 }

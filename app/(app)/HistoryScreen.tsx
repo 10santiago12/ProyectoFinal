@@ -1,42 +1,40 @@
 // app/(app)/HistoryScreen.tsx
 import React from "react";
-import { View, Text, StyleSheet, FlatList } from "react-native";
-import { useAuth } from "../../context/AuthContext"; // importar contexto de autenticación si necesitas datos usuario
-import { router } from "expo-router";
-
-interface HistoryItem {
-  id: string;
-  title: string;
-  date: string;
-}
-
-// Simulación de datos, reemplaza con tus datos reales o fetch a API/backend
-const data: HistoryItem[] = [
-  { id: "1", title: "Historial de compra 1", date: "2024-05-01" },
-  { id: "2", title: "Historial de compra 2", date: "2024-05-05" },
-  { id: "3", title: "Historial de compra 3", date: "2024-05-10" },
-];
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Linking, Alert } from "react-native";
+import { useAuth } from "../../context/AuthContext";
+import { useFavorites } from "../../context/FavoritesContext";
 
 export default function HistoryScreen() {
   const { user } = useAuth();
+  const { favorites, removeFavorite } = useFavorites();
 
-  // Renderiza cada item de historial
-  const renderItem = ({ item }: { item: HistoryItem }) => (
+  const handleRemove = async (item: any) => {
+    await removeFavorite(item);
+    Alert.alert("Favorito eliminado", `"${item.title}" fue eliminado de tus favoritos.`);
+  };
+
+  const renderItem = ({ item }: { item: any }) => (
     <View style={styles.item}>
       <Text style={styles.title}>{item.title}</Text>
-      <Text style={styles.date}>{item.date}</Text>
+      <Text style={styles.price}>Precio: ${item.price}</Text>
+      <TouchableOpacity onPress={() => Linking.openURL(item.link)}>
+        <Text style={styles.link}>Ver producto</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.removeBtn} onPress={() => handleRemove(item)}>
+        <Text style={styles.removeText}>Eliminar</Text>
+      </TouchableOpacity>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Historial de compras de {user?.displayName || "usuario"}</Text>
+      <Text style={styles.header}>Tus favoritos, {user?.displayName || "usuario"}</Text>
       <FlatList
-        data={data}
-        keyExtractor={(item) => item.id}
+        data={favorites}
+        keyExtractor={(item, index) => `${item.link}-${index}`}
         renderItem={renderItem}
         contentContainerStyle={{ paddingBottom: 20 }}
-        ListEmptyComponent={<Text>No hay historial disponible</Text>}
+        ListEmptyComponent={<Text>No tienes productos guardados.</Text>}
       />
     </View>
   );
@@ -62,17 +60,22 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: "600",
+    marginBottom: 4,
   },
-  date: {
+  price: {
     fontSize: 14,
-    color: "#666",
-    marginTop: 5,
+    color: "#2e7d32",
   },
   link: {
-    marginTop: 20,
-    color: "blue",
+    marginTop: 6,
+    color: "#1565c0",
     textDecorationLine: "underline",
-    textAlign: "center",
-    fontSize: 16,
+  },
+  removeBtn: {
+    marginTop: 8,
+  },
+  removeText: {
+    color: "red",
+    fontWeight: "600",
   },
 });
