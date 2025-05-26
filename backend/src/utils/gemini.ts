@@ -19,6 +19,5 @@ export async function identifyProductFromImage(imageBuffer: Buffer): Promise<str
     "¿Qué producto se muestra en esta imagen? Devuelve solo el nombre del producto, no digas nada más sino el nombre.",
   ]);
 
-  const text = result.response.text().trim();
-  return text;
+  return result.response.text().trim();
 }
