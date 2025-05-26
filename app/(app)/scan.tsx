@@ -1,21 +1,16 @@
 import React, { useState } from "react";
 import {
-  ScrollView,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  ActivityIndicator,
-  Alert,
-  Linking,
-  Dimensions,
-  Platform,
+  ScrollView, View, Text, StyleSheet, TouchableOpacity, Image,
+  ActivityIndicator, Alert, Linking, Dimensions, Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useFavorites } from "@/context/FavoritesContext";
+import { useAuth } from "@/context/AuthContext";
+import { db } from "@/utils/firebaseconfig";
+import { doc, updateDoc, arrayUnion } from "firebase/firestore";
 
 const { width } = Dimensions.get("window");
+const BASE_URL = "https://scan-save-backend.onrender.com";
 
 export default function ScanScreen() {
   const [image, setImage] = useState<string | null>(null);
@@ -23,6 +18,7 @@ export default function ScanScreen() {
   const [productName, setProductName] = useState("");
   const [offers, setOffers] = useState<any[]>([]);
   const { addFavorite } = useFavorites();
+  const { user } = useAuth();
 
   const pickImage = async () => {
     try {
@@ -58,7 +54,8 @@ export default function ScanScreen() {
           name: `photo.${ext}`,
         } as any);
       }
-      const res = await fetch("https://scan-save-backend.onrender.com/api/analyze-image", {
+
+      const res = await fetch(`${BASE_URL}/api/analyze-image`, {
         method: "POST",
         body: formData,
       });
@@ -79,14 +76,29 @@ export default function ScanScreen() {
     if (!productName) return;
     setLoading(true);
     try {
-      const res = await fetch("https://scan-save-backend.onrender.com/api/search-offers", {
+      const res = await fetch(`${BASE_URL}/api/search-offers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productName }),
       });
       const data = await res.json();
-      if (res.ok) setOffers(data.offers);
-      else Alert.alert("Error", "No se encontraron ofertas");
+      if (res.ok) {
+        setOffers(data.offers);
+
+        if (user && data.offers.length > 0) {
+          const scan = {
+            title: data.offers[0].title,
+            price: data.offers[0].price,
+            scannedAt: new Date().toISOString(),
+          };
+          const userRef = doc(db, "users", user.uid);
+          await updateDoc(userRef, {
+            recentScans: arrayUnion(scan),
+          });
+        }
+      } else {
+        Alert.alert("Error", "No se encontraron ofertas");
+      }
     } catch {
       Alert.alert("Error", "No se pudieron obtener las ofertas.");
     } finally {
@@ -102,11 +114,7 @@ export default function ScanScreen() {
 
       {image && (
         <View style={styles.previewWrapper}>
-          <Image
-            source={{ uri: image }}
-            style={styles.previewImage}
-            resizeMode="contain"
-          />
+          <Image source={{ uri: image }} style={styles.previewImage} resizeMode="contain" />
         </View>
       )}
 

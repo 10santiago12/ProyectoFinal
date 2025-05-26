@@ -14,7 +14,7 @@ export default function AppLayout() {
           fontWeight: "600",
         },
         tabBarLabelPosition: "below-icon",
-        tabBarIcon: ({ color, size, focused }) => {
+        tabBarIcon: ({ color, focused }) => {
           let iconName: React.ComponentProps<typeof Ionicons>["name"];
 
           switch (route.name) {
@@ -26,6 +26,9 @@ export default function AppLayout() {
               break;
             case "HistoryScreen":
               iconName = focused ? "time" : "time-outline";
+              break;
+            case "FavoritesScreen":
+              iconName = focused ? "heart" : "heart-outline";
               break;
             case "PriceHistoryScreen":
               iconName = focused ? "stats-chart" : "stats-chart-outline";
@@ -54,14 +57,15 @@ export default function AppLayout() {
         },
       })}
     >
-      {/* ✅ Solo los tabs visibles */}
+      {/* ✅ Pestañas visibles */}
       <Tabs.Screen name="mainpage" options={{ title: "Home", tabBarLabel: "Home" }} />
       <Tabs.Screen name="scan" options={{ title: "Scan", tabBarLabel: "Scan" }} />
       <Tabs.Screen name="HistoryScreen" options={{ title: "History", tabBarLabel: "History" }} />
+      <Tabs.Screen name="FavoritesScreen" options={{ title: "Favorites", tabBarLabel: "Favorites" }} />
       <Tabs.Screen name="PriceHistoryScreen" options={{ title: "Prices", tabBarLabel: "Prices" }} />
       <Tabs.Screen name="ProfileScreen" options={{ title: "Profile", tabBarLabel: "Profile" }} />
 
-      {/* ❌ Ocultos del tab bar completamente */}
+      {/* ❌ Rutas ocultas */}
       <Tabs.Screen name="ScannerScreen" options={{ href: null, headerShown: false }} />
       <Tabs.Screen name="HomeScreen" options={{ href: null, headerShown: false }} />
       <Tabs.Screen name="AuthScreen" options={{ href: null, headerShown: false }} />
