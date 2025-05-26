@@ -1,8 +1,21 @@
 // app/(app)/scan.tsx
 import React, { useState } from "react";
-import { View, Text, Button, Image, ActivityIndicator, Alert, ScrollView, Platform, StyleSheet } from "react-native";
+import {
+  ScrollView,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+  Alert,
+  Linking,
+  Dimensions,
+  Platform,
+} from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { Ionicons } from '@expo/vector-icons';
+
+const { width } = Dimensions.get("window");
 
 export default function ScanScreen() {
   const [image, setImage] = useState<string | null>(null);
@@ -20,6 +33,7 @@ export default function ScanScreen() {
         const uri = result.assets[0].uri;
         setImage(uri);
         setProductName("");
+        setOffers([]);
         await uploadImage(uri);
       }
     } catch {
@@ -28,38 +42,32 @@ export default function ScanScreen() {
   };
 
   const uploadImage = async (uri: string) => {
+    setLoading(true);
     try {
-      setLoading(true);
       const formData = new FormData();
-
       if (Platform.OS === "web") {
         const response = await fetch(uri);
         const blob = await response.blob();
         formData.append("image", blob, "photo.jpg");
       } else {
-        const ext = uri.split(".").pop();
+        const ext = uri.split('.').pop();
         formData.append("image", {
           uri,
           type: `image/${ext}`,
           name: `photo.${ext}`,
         } as any);
       }
-
       const res = await fetch("http://localhost:3001/api/analyze-image", {
         method: "POST",
         body: formData,
       });
-
       const data = await res.json();
-
       if (res.ok) {
         setProductName(data.productName || "No se reconoció");
-        setOffers([]);
       } else {
-        console.warn("❌ Backend:", data);
         setProductName("No se reconoció");
       }
-    } catch (error) {
+    } catch {
       Alert.alert("Error", "No se pudo analizar la imagen.");
     } finally {
       setLoading(false);
@@ -67,22 +75,18 @@ export default function ScanScreen() {
   };
 
   const fetchOffers = async () => {
+    if (!productName) return;
+    setLoading(true);
     try {
-      setLoading(true);
       const res = await fetch("http://localhost:3001/api/search-offers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productName }),
       });
-
       const data = await res.json();
-
-      if (res.ok) {
-        setOffers(data.offers);
-      } else {
-        Alert.alert("No se encontraron ofertas");
-      }
-    } catch (err) {
+      if (res.ok) setOffers(data.offers);
+      else Alert.alert("Error", "No se encontraron ofertas");
+    } catch {
       Alert.alert("Error", "No se pudieron obtener las ofertas.");
     } finally {
       setLoading(false);
@@ -90,25 +94,58 @@ export default function ScanScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 20 }}>
-      <Button title="Seleccionar Imagen" onPress={pickImage} />
-      {image && <Image source={{ uri: image }} style={{ width: 200, height: 200, marginTop: 20 }} />}
-      {loading && <ActivityIndicator size="large" color="green" style={{ marginTop: 20 }} />}
-      {!loading && productName && (
-        <View style={{ marginTop: 20 }}>
-          <Text style={{ fontWeight: "bold" }}>🛍 Producto identificado:</Text>
-          <Text>{productName}</Text>
-          <Button title="Buscar ofertas en eBay" onPress={fetchOffers} />
+    <ScrollView contentContainerStyle={styles.scroll}>
+      {/* Botón de selección */}
+      <TouchableOpacity 
+        style={styles.button} 
+        onPress={pickImage} 
+        disabled={loading}
+      >
+        <Text style={styles.buttonText}>Seleccionar Imagen</Text>
+      </TouchableOpacity>
+
+      {/* Vista previa de imagen */}
+      {image && (
+        <View style={styles.previewWrapper}>
+          <Image
+            source={{ uri: image }}
+            style={styles.previewImage}
+            resizeMode="contain"
+          />
         </View>
       )}
+
+      {/* Spinner */}
+      {loading && <ActivityIndicator style={styles.loader} size="large" color="#3a7d44" />}
+
+      {/* Producto identificado */}
+      {!loading && productName !== "" && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Producto identificado:</Text>
+          <Text style={styles.productName}>{productName}</Text>
+          <TouchableOpacity 
+            style={styles.buttonOutline} 
+            onPress={fetchOffers} 
+            disabled={loading}
+          >
+            <Text style={styles.buttonOutlineText}>Buscar ofertas en eBay</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Lista de ofertas */}
       {offers.length > 0 && (
-        <View style={{ marginTop: 20 }}>
-          <Text style={{ fontWeight: "bold" }}>💸 Ofertas:</Text>
-          {offers.map((offer, index) => (
-            <View key={index} style={{ marginBottom: 15 }}>
-              <Text>📌 {offer.title}</Text>
-              <Text>💲 {offer.price}</Text>
-              <Text>🔗 {offer.link}</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Ofertas disponibles:</Text>
+          {offers.map((offer, i) => (
+            <View key={i} style={styles.offerCard}>
+              <Text style={styles.offerTitle}>{offer.title}</Text>
+              <Text style={styles.offerPrice}>Precio: ${offer.price}</Text>
+              <TouchableOpacity onPress={() => Linking.openURL(offer.link)}>
+                <Text style={styles.offerLink} numberOfLines={1} ellipsizeMode="middle">
+                  Ver oferta
+                </Text>
+              </TouchableOpacity>
             </View>
           ))}
         </View>
@@ -117,72 +154,102 @@ export default function ScanScreen() {
   );
 }
 
+const IMAGE_SIZE = width * 0.3; // Reducido a 30% del ancho de pantalla
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f9f9f9',
+  scroll: {
     padding: 20,
+    backgroundColor: '#fff',
     alignItems: 'center',
   },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginVertical: 16,
-    color: '#333',
-  },
-  scanButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  button: {
     backgroundColor: '#3a7d44',
     paddingVertical: 14,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     borderRadius: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  scanButtonText: {
+  buttonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-    marginLeft: 8,
   },
-  previewContainer: {
-    width: 200,
-    height: 200,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginTop: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 3,
+  previewWrapper: {
+    width: IMAGE_SIZE,
+    height: IMAGE_SIZE,
+    marginVertical: 20,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#f5f5f5',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   previewImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 12,
   },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0,0,0,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  loader: {
+    marginVertical: 20,
   },
-  resultCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  section: {
+    width: '100%',
     marginTop: 20,
+    paddingHorizontal: 10,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 12,
+    color: '#333',
+  },
+  productName: {
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 16,
+    paddingHorizontal: 8,
+  },
+  buttonOutline: {
+    borderWidth: 1,
+    borderColor: '#3a7d44',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 8,
+    backgroundColor: '#f0f8f0',
+  },
+  buttonOutlineText: {
+    color: '#3a7d44',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  offerCard: {
     backgroundColor: '#fff',
     padding: 16,
     borderRadius: 8,
-    width: '100%',
-    elevation: 2,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    elevation: 1,
   },
-  resultText: {
-    marginLeft: 12,
-    fontSize: 16,
+  offerTitle: {
+    fontSize: 15,
+    fontWeight: '500',
+    marginBottom: 6,
     color: '#333',
-    flexShrink: 1,
+  },
+  offerPrice: {
+    fontSize: 14,
+    color: '#2e7d32',
+    marginBottom: 8,
+    fontWeight: '600',
+  },
+  offerLink: {
+    fontSize: 14,
+    color: '#1565c0',
+    textDecorationLine: 'underline',
   },
 });

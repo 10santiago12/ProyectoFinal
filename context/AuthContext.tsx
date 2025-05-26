@@ -16,7 +16,7 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
-import app from "../utils/firebaseconfig";
+import { app } from "../utils/firebaseconfig";
 import { useRouter } from "expo-router";
 
 interface UpdateProfileData {
